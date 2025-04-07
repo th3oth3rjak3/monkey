@@ -1,7 +1,7 @@
 package lexer
 
 import (
-	"monkey/token"
+	"monkey/interpreter/token"
 )
 
 // Lexer represents a lexical analyzer for the Monkey language.
