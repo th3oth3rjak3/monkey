@@ -163,3 +163,59 @@ func (i *IntegerLiteral) TokenLiteral() string {
 func (i *IntegerLiteral) String() string {
 	return i.Token.Literal
 }
+
+// PrefixExpression represents an expression that has a prefix operator.
+type PrefixExpression struct {
+	Token    token.Token // The prefix token, e.g. ! or -
+	Operator string      // The string representation of the operator.
+	Right    Expression  // The expression to be evaluated.
+}
+
+// expressionNode is a placeholder function for the Expression interface.
+func (p *PrefixExpression) expressionNode() {}
+
+// TokenLiteral returns the literal value of the token for the prefix expression.
+func (p *PrefixExpression) TokenLiteral() string {
+	return p.Token.Literal
+}
+
+// String returns a string representation of the PrefixExpression
+func (p *PrefixExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(p.Operator)
+	out.WriteString(p.Right.String())
+	out.WriteString(")")
+
+	return out.String()
+}
+
+// InfixExpression represents an expression that is bound by an infix operator.
+type InfixExpression struct {
+	Token    token.Token // The operator token, e.g. +
+	Left     Expression  // The left hand side expression to be evaluated.
+	Operator string      // The operator literal value.
+	Right    Expression  // The right hand side expression to be evaluated.
+}
+
+// expressionNode is a placeholder function for the Expression interface.
+func (i *InfixExpression) expressionNode() {}
+
+// TokenLiteral returns the literal value of the token for the infix expression.
+func (i *InfixExpression) TokenLiteral() string {
+	return i.Token.Literal
+}
+
+// String returns a string representation of the InfixExpression
+func (i *InfixExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(i.Left.String())
+	out.WriteString(" " + i.Operator + " ")
+	out.WriteString(i.Right.String())
+	out.WriteString(")")
+
+	return out.String()
+}
