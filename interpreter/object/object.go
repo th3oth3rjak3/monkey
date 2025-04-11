@@ -6,9 +6,10 @@ import "fmt"
 type ObjectType string
 
 const (
-	INTEGER_OBJ = "INTEGER"
-	BOOLEAN_OBJ = "BOOLEAN"
-	NULL_OBJ    = "NULL"
+	INTEGER_OBJ      = "INTEGER"
+	BOOLEAN_OBJ      = "BOOLEAN"
+	NULL_OBJ         = "NULL"
+	RETURN_VALUE_OBJ = "RETURN_VALUE"
 )
 
 // Object represents our universal type.
@@ -56,6 +57,21 @@ func (n *Null) Inspect() string {
 }
 
 // Type gets the underlying object type.
-func (n *Null) Type() string {
+func (n *Null) Type() ObjectType {
 	return NULL_OBJ
+}
+
+// ReturnValue represents a value that should be returned from a block or function.
+type ReturnValue struct {
+	Value Object // The object that should be returned.
+}
+
+// Type gets the underlying object type.
+func (r *ReturnValue) Type() ObjectType {
+	return RETURN_VALUE_OBJ
+}
+
+// Inspect represents the object as a string.
+func (r *ReturnValue) Inspect() string {
+	return r.Value.Inspect()
 }
