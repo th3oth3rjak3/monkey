@@ -34,6 +34,7 @@ var precedence = map[token.TokenType]int{
 	token.MINUS:    SUM,
 	token.SLASH:    PRODUCT,
 	token.ASTERISK: PRODUCT,
+	token.LPAREN:   CALL,
 }
 
 // Parser represents the monkey language parser to convert tokens into a runnable program.
@@ -66,6 +67,11 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefixFn(token.INT, p.parseIntegerLiteral)
 	p.registerPrefixFn(token.BANG, p.parsePrefixExpression)
 	p.registerPrefixFn(token.MINUS, p.parsePrefixExpression)
+	p.registerPrefixFn(token.TRUE, p.parseBoolean)
+	p.registerPrefixFn(token.FALSE, p.parseBoolean)
+	p.registerPrefixFn(token.LPAREN, p.parseGroupedExpression)
+	p.registerPrefixFn(token.IF, p.parseIfExpression)
+	p.registerPrefixFn(token.FUNCTION, p.parseFunctionLiteral)
 
 	// Register infix parsing functions
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
@@ -77,6 +83,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfixFn(token.NE, p.parseInfixExpression)
 	p.registerInfixFn(token.LT, p.parseInfixExpression)
 	p.registerInfixFn(token.GT, p.parseInfixExpression)
+	p.registerInfixFn(token.LPAREN, p.parseCallExpression)
 
 	return p
 }
@@ -164,9 +171,11 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 		return nil
 	}
 
-	// TODO: we're skipping the epxressions until we
-	// encounter a semicolon
-	for !p.curTokenIs(token.SEMICOLON) {
+	p.nextToken()
+
+	stmt.Value = p.parseExpression(LOWEST)
+
+	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}
 
@@ -218,8 +227,9 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	stmt := &ast.ReturnStatement{Token: p.curToken}
 	p.nextToken()
 
-	// TODO: we're skipping expressions for now until we get a semicolon
-	for !p.curTokenIs(token.SEMICOLON) {
+	stmt.ReturnValue = p.parseExpression(LOWEST)
+
+	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}
 
@@ -363,4 +373,177 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	expression.Right = p.parseExpression(precedence)
 
 	return expression
+}
+
+// parseBoolean parses a boolean expression.
+//
+// Returns:
+//   - ast.Expression: A boolean ast expression.
+func (p *Parser) parseBoolean() ast.Expression {
+	return &ast.Boolean{Token: p.curToken, Value: p.curTokenIs(token.TRUE)}
+}
+
+// parseGroupedExpression parses expression that are grouped.
+//
+// Returns:
+//   - ast.Expression: The grouping ast expression.
+func (p *Parser) parseGroupedExpression() ast.Expression {
+	p.nextToken()
+
+	exp := p.parseExpression(LOWEST)
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	return exp
+}
+
+// parseIfExpression parses an if expression into its separate parts.
+//
+// Returns:
+//   - ast.Expression: the parsed if expression.
+func (p *Parser) parseIfExpression() ast.Expression {
+	expression := &ast.IfExpression{Token: p.curToken}
+
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+
+	p.nextToken()
+	expression.Condition = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	expression.Consequence = p.parseBlockStatement()
+
+	if p.peekTokenIs(token.ELSE) {
+		p.nextToken()
+
+		if !p.expectPeek(token.LBRACE) {
+			return nil
+		}
+
+		expression.Alternative = p.parseBlockStatement()
+	}
+
+	return expression
+}
+
+// parseBlockStatement parses a block statement like the Consequence of an if expression.
+//
+// Returns:
+//   - *ast.BlockStatement: The block statement after parsing.
+func (p *Parser) parseBlockStatement() *ast.BlockStatement {
+	block := &ast.BlockStatement{Token: p.curToken}
+	block.Statements = []ast.Statement{}
+
+	p.nextToken()
+
+	for !p.curTokenIs(token.RBRACE) && !p.curTokenIs(token.EOF) {
+		stmt := p.parseStatement()
+		if stmt != nil {
+			block.Statements = append(block.Statements, stmt)
+		}
+		p.nextToken()
+	}
+
+	return block
+}
+
+// parseFunctionLiteral parses a user defined function.
+//
+// Returns:
+//   - ast.Expression: The function literal as an expression.
+func (p *Parser) parseFunctionLiteral() ast.Expression {
+	lit := &ast.FunctionLiteral{Token: p.curToken}
+
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+
+	lit.Parameters = p.parseFunctionParameters()
+
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	lit.Body = p.parseBlockStatement()
+	return lit
+}
+
+// parseFunctionParameters handles the parsing task for function input parameters.
+//
+// Returns:
+//   - []*ast.Identifier: A slice of identifiers that are function parameters.
+func (p *Parser) parseFunctionParameters() []*ast.Identifier {
+	identifiers := []*ast.Identifier{}
+
+	if p.peekTokenIs(token.RPAREN) {
+		p.nextToken()
+		return identifiers
+	}
+
+	p.nextToken()
+
+	ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+	identifiers = append(identifiers, ident)
+
+	for p.peekTokenIs(token.COMMA) {
+		p.nextToken()
+		p.nextToken()
+		ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+		identifiers = append(identifiers, ident)
+	}
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	return identifiers
+}
+
+// parseCallExpression handles parsing for a callable expression.
+//
+// Parameters:
+//   - function: The input function that is to be called.
+//
+// Returns:
+//   - ast.Expression: The parsed call expression.
+func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
+	exp := &ast.CallExpression{Token: p.curToken, Function: function}
+	exp.Arguments = p.parseCallArguments()
+	return exp
+}
+
+// parseCallArguments handles parsing for a callable expressions arguments.
+//
+// Returns:
+//   - []ast.Expression: The list of arguments to be passed into a callable function.
+func (p *Parser) parseCallArguments() []ast.Expression {
+	args := []ast.Expression{}
+
+	if p.peekTokenIs(token.RPAREN) {
+		p.nextToken()
+		return args
+	}
+
+	p.nextToken()
+	args = append(args, p.parseExpression(LOWEST))
+
+	for p.peekTokenIs(token.COMMA) {
+		p.nextToken()
+		p.nextToken()
+		args = append(args, p.parseExpression(LOWEST))
+	}
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	return args
 }

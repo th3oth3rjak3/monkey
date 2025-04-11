@@ -3,6 +3,7 @@ package ast
 import (
 	"bytes"
 	"monkey/interpreter/token"
+	"strings"
 )
 
 // Node represents a node in the abstract syntax tree.
@@ -215,6 +216,150 @@ func (i *InfixExpression) String() string {
 	out.WriteString(i.Left.String())
 	out.WriteString(" " + i.Operator + " ")
 	out.WriteString(i.Right.String())
+	out.WriteString(")")
+
+	return out.String()
+}
+
+// Boolean represents a boolean literal.
+type Boolean struct {
+	Token token.Token // The token that represents the boolean literal.
+	Value bool        // The actual value of the boolean: true or false.
+}
+
+// expressionNode is a placeholder function for the Expression interface.
+func (b *Boolean) expressionNode() {}
+
+// TokenLiteral returns the literal value of the token for the boolean expression.
+func (b *Boolean) TokenLiteral() string {
+	return b.Token.Literal
+}
+
+// String returns a string representation of the boolean expression
+func (b *Boolean) String() string {
+	return b.Token.Literal
+}
+
+// IfExpression represents a decision to make based on a conditional expression.
+// When true, Consequence is evaluated, when false Alternative is evaluated.
+type IfExpression struct {
+	Token       token.Token     // The 'if' Token
+	Condition   Expression      // The condition to evaluate
+	Consequence *BlockStatement // The result when the condition is true.
+	Alternative *BlockStatement // The result when the condition is false.
+}
+
+// expressionNode is a placeholder function for the Expression interface.
+func (i *IfExpression) expressionNode() {}
+
+// TokenLiteral returns the literal value of the token for the infix expression.
+func (i *IfExpression) TokenLiteral() string {
+	return i.Token.Literal
+}
+
+// String returns a string representation of the if expression
+func (i *IfExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("if")
+	out.WriteString(i.Condition.String())
+	out.WriteString(" ")
+	out.WriteString(i.Consequence.String())
+
+	if i.Alternative != nil {
+		out.WriteString("else ")
+		out.WriteString(i.Alternative.String())
+	}
+
+	return out.String()
+}
+
+// BlockStatement represents a scoped section of code that contains
+// additional statements.
+type BlockStatement struct {
+	Token      token.Token // The { token
+	Statements []Statement // A collection of scoped statements.
+}
+
+// statementNode is a placeholder function for the Statement interface.
+func (b *BlockStatement) statementNode() {}
+
+// TokenLiteral returns the literal value of the token for the block statement.
+func (b *BlockStatement) TokenLiteral() string {
+	return b.Token.Literal
+}
+
+// String returns a string representation of the block statement.
+func (b *BlockStatement) String() string {
+	var out bytes.Buffer
+
+	for _, s := range b.Statements {
+		out.WriteString(s.String())
+	}
+
+	return out.String()
+}
+
+// FunctionLiteral represents a user defined function.
+type FunctionLiteral struct {
+	Token      token.Token     // The 'fn' token
+	Parameters []*Identifier   // The list of parameters which can be empty.
+	Body       *BlockStatement // The body of the function
+}
+
+// expressionNode is a placeholder function for the Expression interface.
+func (f *FunctionLiteral) expressionNode() {}
+
+// TokenLiteral returns the literal value of the token for the function literal.
+func (f *FunctionLiteral) TokenLiteral() string {
+	return f.Token.Literal
+}
+
+// String returns a string representation of the function literal.
+func (f *FunctionLiteral) String() string {
+	var out bytes.Buffer
+
+	params := []string{}
+	for _, p := range f.Parameters {
+		params = append(params, p.String())
+	}
+
+	out.WriteString(f.TokenLiteral())
+	out.WriteString("(")
+	out.WriteString(strings.Join(params, ", "))
+	out.WriteString(")")
+	out.WriteString(f.Body.String())
+
+	return out.String()
+}
+
+// CallExpression represents a function and a set of arguments that can be called.
+type CallExpression struct {
+	Token     token.Token  // The '(' Token
+	Function  Expression   // The function to be called
+	Arguments []Expression // The arguments to be passed into the function.
+}
+
+// expressionNode is a placeholder function for the Expression interface.
+func (c *CallExpression) expressionNode() {}
+
+// TokenLiteral returns the literal value of the token for the call expression.
+func (c *CallExpression) TokenLiteral() string {
+	return c.Token.Literal
+}
+
+// String returns a string representation of the call expression.
+func (c *CallExpression) String() string {
+	var out bytes.Buffer
+	args := []string{}
+
+	for _, a := range c.Arguments {
+		args = append(args, a.String())
+	}
+
+	out.WriteString(c.Function.String())
+	out.WriteString("(")
+	out.WriteString(strings.Join(args, ", "))
 	out.WriteString(")")
 
 	return out.String()

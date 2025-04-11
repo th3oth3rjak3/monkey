@@ -53,6 +53,8 @@ func testLiteralExpression(t *testing.T, exp ast.Expression, expected any) bool 
 		return testIntegerLiteral(t, exp, v)
 	case string:
 		return testIdentifier(t, exp, v)
+	case bool:
+		return testBooleanLiteral(t, exp, v)
 	}
 
 	t.Errorf("type of exp not handled. got=%T", exp)
@@ -189,4 +191,33 @@ func constructTestProgram(t *testing.T, input string) *ast.Program {
 	program := p.ParseProgram()
 	checkParserErrors(t, p)
 	return program
+}
+
+// testBooleanLiteral tests a boolean expression.
+//
+// Parameters:
+//   - t: The testing instance.
+//   - exp: The expression thought to be a boolean.
+//   - value: The expected value of the expression.
+//
+// Returns:
+//   - bool: True when success, otherwise false.
+func testBooleanLiteral(t *testing.T, exp ast.Expression, value bool) bool {
+	bo, ok := exp.(*ast.Boolean)
+	if !ok {
+		t.Errorf("exp not *ast.Boolean. got=%T", exp)
+		return false
+	}
+
+	if bo.Value != value {
+		t.Errorf("bo.Value is not %t. got=%t", value, bo.Value)
+		return false
+	}
+
+	if bo.TokenLiteral() != fmt.Sprintf("%t", value) {
+		t.Errorf("bo.TokenLiteral() not %t. got=%s", value, bo.TokenLiteral())
+		return false
+	}
+
+	return true
 }
