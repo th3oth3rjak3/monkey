@@ -12,6 +12,14 @@ var (
 	FALSE = &object.Boolean{Value: false}
 )
 
+// Eval is the evaluator function that handles conversion from ast nodes to objects.
+//
+// Parameters:
+//   - node: The input ast Node.
+//   - env: The environment which contains the current state.
+//
+// Returns:
+//   - object.Object: The evaluated object.
 func Eval(node ast.Node, env *object.Environment) object.Object {
 	switch node := node.(type) {
 	// Statements
@@ -92,6 +100,14 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	return nil
 }
 
+// evalProgram evaluates the root program node.
+//
+// Parameters:
+//   - stmts: A slice of statements to be evaluated.
+//   - env: The root environment.
+//
+// Returns:
+//   - object.Object: The evaluated object.
 func evalProgram(stmts []ast.Statement, env *object.Environment) object.Object {
 	var result object.Object
 
@@ -109,6 +125,14 @@ func evalProgram(stmts []ast.Statement, env *object.Environment) object.Object {
 	return result
 }
 
+// evalBlockStatement evaluates a block of code.
+//
+// Parameters:
+//   - block: The block of code to evaluate.
+//   - env: The environment.
+//
+// Returns:
+//   - object.Object: The result of evaluating the body.
 func evalBlockStatement(block *ast.BlockStatement, env *object.Environment) object.Object {
 	var result object.Object
 
@@ -126,6 +150,13 @@ func evalBlockStatement(block *ast.BlockStatement, env *object.Environment) obje
 	return result
 }
 
+// nativeBoolToBooleanObject is a helper function that converts a go bool type to a monkey Boolean.
+//
+// Parameters:
+//   - input: The go boolean input.
+//
+// Returns:
+//   - *object.Boolean: The monkey boolean representation.
 func nativeBoolToBooleanObject(input bool) *object.Boolean {
 	if input {
 		return TRUE
@@ -134,6 +165,14 @@ func nativeBoolToBooleanObject(input bool) *object.Boolean {
 	return FALSE
 }
 
+// evalPrefixExpression evaluates expressions that have a prefix operator.
+//
+// Parameters:
+//   - operator: The prefix operator e.g. ! or -
+//   - right: The object to evaluate in the prefix expression.
+//
+// Returns:
+//   - object.Object: The result of processing the prefix operator and the expression.
 func evalPrefixExpression(operator string, right object.Object) object.Object {
 	switch operator {
 	case "!":
@@ -145,6 +184,14 @@ func evalPrefixExpression(operator string, right object.Object) object.Object {
 	}
 }
 
+// evalBangOperatorExpression evaluates what should happen for a given input
+// object when the prefix operator is a !
+//
+// Parameters:
+//   - right: The right hand side expression to be evaluated against the boolean negation operator.
+//
+// Returns:
+//   - object.Object: The result of the evaluation.
 func evalBangOperatorExpression(right object.Object) object.Object {
 	switch right {
 	case TRUE:
@@ -158,6 +205,13 @@ func evalBangOperatorExpression(right object.Object) object.Object {
 	}
 }
 
+// evalMinusPrefixOperatorExpression handles the integer negation prefix operation.
+//
+// Parameters:
+//   - right: The object to have the integer negation operator applied.
+//
+// Returns:
+//   - object.Object: The result of evaluating the integer negation operation.
 func evalMinusPrefixOperatorExpression(right object.Object) object.Object {
 	if right.Type() != object.INTEGER_OBJ {
 		return newError("unknown operator: -%s", right.Type())
@@ -167,6 +221,15 @@ func evalMinusPrefixOperatorExpression(right object.Object) object.Object {
 	return &object.Integer{Value: -value}
 }
 
+// evalInfixExpression handles the evaluation for all infix expressions
+//
+// Parameters:
+//   - operator: The infix operator.
+//   - left: The left hand side expression.
+//   - right: The right hand side expression.
+//
+// Returns:
+//   - object.Object: The result of evaluating the infix expression.
 func evalInfixExpression(operator string, left, right object.Object) object.Object {
 	switch {
 	case left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ:
@@ -182,6 +245,15 @@ func evalInfixExpression(operator string, left, right object.Object) object.Obje
 	}
 }
 
+// evalIntegerInfixExpression evaluates all infix expressions for the integer type.
+//
+// Parameters:
+//   - operator: The operator for the expression.
+//   - left: The left hand side expression.
+//   - right: The right hand side expression.
+//
+// Returns:
+//   - object.Object: The result of evaluating the infix expression.
 func evalIntegerInfixExpression(operator string, left, right object.Object) object.Object {
 	leftVal := left.(*object.Integer).Value
 	rightVal := right.(*object.Integer).Value
@@ -208,6 +280,14 @@ func evalIntegerInfixExpression(operator string, left, right object.Object) obje
 	}
 }
 
+// evalIfExpression evaluates the results of an if/else expression.
+//
+// Parameters:
+//   - i: The if expression to be evaluated.
+//   - env: The environment with the current state.
+//
+// Returns:
+//   - object.Object: The result of evaluating the if/else expression.
 func evalIfExpression(i *ast.IfExpression, env *object.Environment) object.Object {
 	condition := Eval(i.Condition, env)
 	if isError(condition) {
@@ -269,6 +349,14 @@ func isError(obj object.Object) bool {
 	return false
 }
 
+// evalIdentifier handles evaluation of an identifier from the environment.
+//
+// Parameters:
+//   - node: The identifier node that contains the name of the identifier.
+//   - env: The environment used to search for the identifier's value.
+//
+// Returns:
+//   - object.Object: The found value or an error.
 func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object {
 	val, ok := env.Get(node.Value)
 	if !ok {
@@ -278,6 +366,14 @@ func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object
 	return val
 }
 
+// evalExpressions evaluates a slice of call expressions used for calling a function.
+//
+// Parameters:
+//   - exps: The expressions to evaluate and turn into objects.
+//   - env: The environment with the current state.
+//
+// Returns:
+//   - []object.Object: The collection of expressions evaluated and turned into objects.
 func evalExpressions(exps []ast.Expression, env *object.Environment) []object.Object {
 	var result []object.Object
 
@@ -292,6 +388,14 @@ func evalExpressions(exps []ast.Expression, env *object.Environment) []object.Ob
 	return result
 }
 
+// applyFunction calls the function with the supplied args.
+//
+// Parameters:
+//   - fn: The function to be called.
+//   - args: The arguments to pass to the function call.
+//
+// Returns:
+//   - object.Object: The result of calling the function.f
 func applyFunction(fn object.Object, args []object.Object) object.Object {
 	function, ok := fn.(*object.Function)
 	if !ok {
@@ -303,6 +407,14 @@ func applyFunction(fn object.Object, args []object.Object) object.Object {
 	return unwrapReturnValue(evaluated)
 }
 
+// extendFunctionEnv encloses the functions environment with a new one that has the arguments defined.
+//
+// Parameters:
+//   - fn: The function to call.
+//   - args: The args to pass to the function. These are set in the wrapping environment.
+//
+// Returns:
+//   - *object.Environment: The extended environment.
 func extendFunctionEnv(fn *object.Function, args []object.Object) *object.Environment {
 	env := object.NewEnclosedEnvironment(fn.Env)
 	for idx, param := range fn.Parameters {
@@ -312,6 +424,15 @@ func extendFunctionEnv(fn *object.Function, args []object.Object) *object.Enviro
 	return env
 }
 
+// unwrapReturnValue unwraps the return value when it exists
+// in order to stop the return in the current scope and not
+// bubble up to outer functions and blocks.
+//
+// Parameters:
+//   - obj: The object which may contain a return value.
+//
+// Returns:
+//   - object.Object: A return value or the input object.
 func unwrapReturnValue(obj object.Object) object.Object {
 	if returnValue, ok := obj.(*object.ReturnValue); ok {
 		return returnValue.Value
