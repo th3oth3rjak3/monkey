@@ -16,6 +16,14 @@ func NewEnvironment() *Environment {
 	return &Environment{store: store, outer: nil}
 }
 
+// NewEnclosedEnvironment creates a new environment and sets the outer environment
+// as its parent.
+//
+// Parameters:
+//   - outer: The outer environment that is to be the parent of the new environment.
+//
+// Returns:
+//   - *Environment: The new environment with a pointer to the parent.
 func NewEnclosedEnvironment(outer *Environment) *Environment {
 	env := NewEnvironment()
 	env.outer = outer

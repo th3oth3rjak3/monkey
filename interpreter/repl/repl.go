@@ -12,6 +12,11 @@ import (
 
 const PROMPT = ">> "
 
+// Start begins the REPL for the user.
+//
+// Parameters:
+//   - in: The input reader interface.
+//   - out: The output writer interface.
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
 	env := object.NewEnvironment()
@@ -54,6 +59,11 @@ const MONKEY_FACE = `            __,__
            '-----'
 `
 
+// printParserErrors prints the errors out to the writer for the user.
+//
+// Parameters:
+//   - out: The output writer.
+//   - errors: The errors to print to the output.
 func printParserErrors(out io.Writer, errors []string) {
 	io.WriteString(out, MONKEY_FACE)
 	io.WriteString(out, "Whoops! We ran into some monkey business here!\n")
