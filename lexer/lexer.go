@@ -1,7 +1,7 @@
 package lexer
 
 import (
-	"monkey/interpreter/token"
+	"monkey/token"
 	"slices"
 )
 

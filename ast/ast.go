@@ -2,7 +2,7 @@ package ast
 
 import (
 	"bytes"
-	"monkey/interpreter/token"
+	"monkey/token"
 	"strings"
 )
 

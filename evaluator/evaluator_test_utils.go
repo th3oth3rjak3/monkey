@@ -1,9 +1,9 @@
 package evaluator
 
 import (
-	"monkey/interpreter/lexer"
-	"monkey/interpreter/object"
-	"monkey/interpreter/parser"
+	"monkey/lexer"
+	"monkey/object"
+	"monkey/parser"
 	"testing"
 )
 
