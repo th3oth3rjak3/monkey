@@ -1,6 +1,11 @@
 package object
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+	"monkey/interpreter/ast"
+	"strings"
+)
 
 // ObjectType represents the underlying object's type.
 type ObjectType string
@@ -11,6 +16,7 @@ const (
 	NULL_OBJ         = "NULL"
 	RETURN_VALUE_OBJ = "RETURN_VALUE"
 	ERROR_OBJ        = "ERROR"
+	FUNCTION_OBJ     = "FUNCTION"
 )
 
 // Object represents our universal type.
@@ -90,4 +96,35 @@ func (e *Error) Type() ObjectType {
 // Inspect represents the object as a string.
 func (e *Error) Inspect() string {
 	return fmt.Sprintf("ERROR: %s", e.Message)
+}
+
+// Function represents a callable function.
+type Function struct {
+	Parameters []*ast.Identifier   // The parameters that were passed to the function.
+	Body       *ast.BlockStatement // The block of statements to execute.
+	Env        *Environment        // The environment containing the current state.
+}
+
+// Type gets the underlying object type.
+func (f *Function) Type() ObjectType {
+	return FUNCTION_OBJ
+}
+
+// Inspect represents the object as a string.
+func (f *Function) Inspect() string {
+	var out bytes.Buffer
+
+	params := []string{}
+	for _, p := range f.Parameters {
+		params = append(params, p.String())
+	}
+
+	out.WriteString("fn")
+	out.WriteString("(")
+	out.WriteString(strings.Join(params, ", "))
+	out.WriteString(") {\n")
+	out.WriteString(f.Body.String())
+	out.WriteString("\n}")
+
+	return out.String()
 }
