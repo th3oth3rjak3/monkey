@@ -49,6 +49,7 @@ const (
 	IF       = "IF"
 	ELSE     = "ELSE"
 	RETURN   = "RETURN"
+	STRING   = "STRING"
 )
 
 // keywords is the map of reserved keywords to their token types.

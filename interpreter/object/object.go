@@ -17,6 +17,7 @@ const (
 	RETURN_VALUE_OBJ = "RETURN_VALUE"
 	ERROR_OBJ        = "ERROR"
 	FUNCTION_OBJ     = "FUNCTION"
+	STRING_OBJ       = "STRING"
 )
 
 // Object represents our universal type.
@@ -53,6 +54,21 @@ func (b *Boolean) Inspect() string {
 // Type gets the underlying object type.
 func (b *Boolean) Type() ObjectType {
 	return BOOLEAN_OBJ
+}
+
+// String represents a string literal
+type String struct {
+	Value string // The actual string value.
+}
+
+// Inspect represents the object as a string.
+func (s *String) Inspect() string {
+	return s.Value
+}
+
+// Type gets the underlying object type.
+func (s *String) Type() ObjectType {
+	return STRING_OBJ
 }
 
 // Null represents no value.

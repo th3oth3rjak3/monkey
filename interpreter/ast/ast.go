@@ -364,3 +364,22 @@ func (c *CallExpression) String() string {
 
 	return out.String()
 }
+
+// StringLiteral represents a string in the monkey language.
+type StringLiteral struct {
+	Token token.Token // The token.
+	Value string      // The literal string value.
+}
+
+// expressionNode is a placeholder function for the Expression interface.
+func (s *StringLiteral) expressionNode() {}
+
+// TokenLiteral returns the literal value of the token for the StringLiteral expression.
+func (s *StringLiteral) TokenLiteral() string {
+	return s.Token.Literal
+}
+
+// String returns a string representation of the StringLiteral expression.
+func (s *StringLiteral) String() string {
+	return s.Token.Literal
+}

@@ -72,6 +72,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefixFn(token.LPAREN, p.parseGroupedExpression)
 	p.registerPrefixFn(token.IF, p.parseIfExpression)
 	p.registerPrefixFn(token.FUNCTION, p.parseFunctionLiteral)
+	p.registerPrefixFn(token.STRING, p.parseStringLiteral)
 
 	// Register infix parsing functions
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
@@ -304,6 +305,14 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 
 	lit.Value = value
 	return lit
+}
+
+// parseStringLiteral parses the current token as a literal string.
+//
+// Returns:
+//   - ast.Expression: The string literal expression parsed from the current token position.
+func (p *Parser) parseStringLiteral() ast.Expression {
+	return &ast.StringLiteral{Token: p.curToken, Value: p.curToken.Literal}
 }
 
 // noPrefixParseFnError adds an error message to the parser error list when no registered parsing function was found.
