@@ -383,3 +383,62 @@ func (s *StringLiteral) TokenLiteral() string {
 func (s *StringLiteral) String() string {
 	return s.Token.Literal
 }
+
+// ArrayLiteral represents an array of data.
+type ArrayLiteral struct {
+	Token    token.Token  // The '[' token.
+	Elements []Expression // A collection of expressions.
+}
+
+// expressionNode is a placeholder function for the Expression interface.
+func (a *ArrayLiteral) expressionNode() {}
+
+// TokenLiteral returns the literal value of the token for the ArrayLiteral expression.
+func (a *ArrayLiteral) TokenLiteral() string {
+	return a.Token.Literal
+}
+
+// String returns a string representation of the ArrayLiteral expression.
+func (a *ArrayLiteral) String() string {
+	var out bytes.Buffer
+
+	elements := []string{}
+
+	for _, e := range a.Elements {
+		elements = append(elements, e.String())
+	}
+
+	out.WriteString("[")
+	out.WriteString(strings.Join(elements, ", "))
+	out.WriteString("]")
+
+	return out.String()
+}
+
+// IndexExpression represents using indexing to get a value from an array. Example: items[1]
+type IndexExpression struct {
+	Token token.Token // The '[' Token
+	Left  Expression  // The identifier, function, or array that evaluates to an array of items.
+	Index Expression  // The index expression that is used to find the item in the list. e.g. 1 + 1 in items[1 + 1]
+}
+
+// expressionNode is a placeholder function for the Expression interface.
+func (i *IndexExpression) expressionNode() {}
+
+// TokenLiteral returns the literal value of the token for the IndexExpression.
+func (i *IndexExpression) TokenLiteral() string {
+	return i.Token.Literal
+}
+
+// String returns a string representation of the ArrayLiteral expression.
+func (i *IndexExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(i.Left.String())
+	out.WriteString("[")
+	out.WriteString(i.Index.String())
+	out.WriteString("])")
+
+	return out.String()
+}

@@ -19,6 +19,7 @@ const (
 	FUNCTION_OBJ     = "FUNCTION"
 	STRING_OBJ       = "STRING"
 	BUILTIN_OBJ      = "BUILTIN"
+	ARRAY_OBJ        = "ARRAY"
 )
 
 // Object represents our universal type.
@@ -163,4 +164,30 @@ func (b *Builtin) Type() ObjectType {
 // Inspect represents the object as a string.
 func (b *Builtin) Inspect() string {
 	return "builtin function"
+}
+
+// Array represents an array of objects.
+type Array struct {
+	Elements []Object // The elements of the array.
+}
+
+// Type gets the underlying object type.
+func (a *Array) Type() ObjectType {
+	return ARRAY_OBJ
+}
+
+// Inspect represents the object as a string.
+func (a *Array) Inspect() string {
+	var out bytes.Buffer
+
+	elements := []string{}
+	for _, e := range a.Elements {
+		elements = append(elements, e.Inspect())
+	}
+
+	out.WriteString("[")
+	out.WriteString(strings.Join(elements, ", "))
+	out.WriteString("]")
+
+	return out.String()
 }

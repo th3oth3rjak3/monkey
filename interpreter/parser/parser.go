@@ -22,6 +22,7 @@ const (
 	PRODUCT         // *
 	PREFIX          // -x or !x
 	CALL            // myFunction(x)
+	INDEX           // array[index]
 )
 
 // precedence defines the operator precedence for each given token type.
@@ -35,6 +36,7 @@ var precedence = map[token.TokenType]int{
 	token.SLASH:    PRODUCT,
 	token.ASTERISK: PRODUCT,
 	token.LPAREN:   CALL,
+	token.LBRACKET: INDEX,
 }
 
 // Parser represents the monkey language parser to convert tokens into a runnable program.
@@ -73,6 +75,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefixFn(token.IF, p.parseIfExpression)
 	p.registerPrefixFn(token.FUNCTION, p.parseFunctionLiteral)
 	p.registerPrefixFn(token.STRING, p.parseStringLiteral)
+	p.registerPrefixFn(token.LBRACKET, p.parseArrayLiteral)
 
 	// Register infix parsing functions
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
@@ -85,6 +88,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfixFn(token.LT, p.parseInfixExpression)
 	p.registerInfixFn(token.GT, p.parseInfixExpression)
 	p.registerInfixFn(token.LPAREN, p.parseCallExpression)
+	p.registerInfixFn(token.LBRACKET, p.parseIndexExpression)
 
 	return p
 }
@@ -525,34 +529,67 @@ func (p *Parser) parseFunctionParameters() []*ast.Identifier {
 //   - ast.Expression: The parsed call expression.
 func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
 	exp := &ast.CallExpression{Token: p.curToken, Function: function}
-	exp.Arguments = p.parseCallArguments()
+	exp.Arguments = p.parseExpressionList(token.RPAREN)
 	return exp
 }
 
-// parseCallArguments handles parsing for a callable expressions arguments.
+// parseArrayLiteral handles the parsing of an array of values.
 //
 // Returns:
-//   - []ast.Expression: The list of arguments to be passed into a callable function.
-func (p *Parser) parseCallArguments() []ast.Expression {
-	args := []ast.Expression{}
+//   - ast.Expression: The output array expression.
+func (p *Parser) parseArrayLiteral() ast.Expression {
+	array := &ast.ArrayLiteral{Token: p.curToken}
+	array.Elements = p.parseExpressionList(token.RBRACKET)
+	return array
+}
 
-	if p.peekTokenIs(token.RPAREN) {
+// parseExpressionList parses a series of expressions joined by commas as a go slice.
+//
+// Parameters:
+//   - end: The token that is expected at the end of the list which would mean we are done.
+//
+// Returns:
+//   - []ast.Expression: The list of expressions that were parsed.
+func (p *Parser) parseExpressionList(end token.TokenType) []ast.Expression {
+	list := []ast.Expression{}
+
+	if p.peekTokenIs(end) {
 		p.nextToken()
-		return args
+		return list
 	}
 
 	p.nextToken()
-	args = append(args, p.parseExpression(LOWEST))
+	list = append(list, p.parseExpression(LOWEST))
 
 	for p.peekTokenIs(token.COMMA) {
 		p.nextToken()
 		p.nextToken()
-		args = append(args, p.parseExpression(LOWEST))
+		list = append(list, p.parseExpression(LOWEST))
 	}
 
-	if !p.expectPeek(token.RPAREN) {
+	if !p.expectPeek(end) {
 		return nil
 	}
 
-	return args
+	return list
+}
+
+// parseIndexExpression parses an index expression like items[0].
+//
+// Parameters:
+//   - left: The left side of the expression. e.g. items in items[0].
+//
+// Returns:
+//   - ast.Expression: The parsed index expression.
+func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
+	exp := &ast.IndexExpression{Token: p.curToken, Left: left}
+
+	p.nextToken()
+	exp.Index = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.RBRACKET) {
+		return nil
+	}
+
+	return exp
 }
