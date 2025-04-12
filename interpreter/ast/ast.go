@@ -442,3 +442,33 @@ func (i *IndexExpression) String() string {
 
 	return out.String()
 }
+
+// HashLiteral is a dictionary or map type object that holds key value pairs.
+type HashLiteral struct {
+	Token token.Token               // The '{' Token
+	Pairs map[Expression]Expression // The key value pairs.
+}
+
+// expressionNode is a placeholder function for the Expression interface.
+func (h *HashLiteral) expressionNode() {}
+
+// TokenLiteral returns the literal value of the token for the IndexExpression.
+func (h *HashLiteral) TokenLiteral() string {
+	return h.Token.Literal
+}
+
+// String returns a string representation of the HashLiteral expression.
+func (h *HashLiteral) String() string {
+	var out bytes.Buffer
+
+	pairs := []string{}
+
+	for key, value := range h.Pairs {
+		pairs = append(pairs, key.String()+": "+value.String())
+	}
+	out.WriteString("{")
+	out.WriteString(strings.Join(pairs, ", "))
+	out.WriteString("}")
+
+	return out.String()
+}

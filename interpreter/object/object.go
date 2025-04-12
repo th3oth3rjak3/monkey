@@ -3,6 +3,7 @@ package object
 import (
 	"bytes"
 	"fmt"
+	"hash/fnv"
 	"monkey/interpreter/ast"
 	"strings"
 )
@@ -20,6 +21,7 @@ const (
 	STRING_OBJ       = "STRING"
 	BUILTIN_OBJ      = "BUILTIN"
 	ARRAY_OBJ        = "ARRAY"
+	HASH_OBJ         = "HASH"
 )
 
 // Object represents our universal type.
@@ -43,6 +45,11 @@ func (i *Integer) Type() ObjectType {
 	return INTEGER_OBJ
 }
 
+// HashKey produces a hash for a key.
+func (i *Integer) HashKey() HashKey {
+	return HashKey{Type: i.Type(), Value: uint64(i.Value)}
+}
+
 // Boolean represents a boolean value.
 type Boolean struct {
 	Value bool // The actual value.
@@ -58,6 +65,19 @@ func (b *Boolean) Type() ObjectType {
 	return BOOLEAN_OBJ
 }
 
+// HashKey produces a hash for a key.
+func (b *Boolean) HashKey() HashKey {
+	var value uint64
+
+	if b.Value {
+		value = 1
+	} else {
+		value = 0
+	}
+
+	return HashKey{Type: b.Type(), Value: value}
+}
+
 // String represents a string literal
 type String struct {
 	Value string // The actual string value.
@@ -71,6 +91,13 @@ func (s *String) Inspect() string {
 // Type gets the underlying object type.
 func (s *String) Type() ObjectType {
 	return STRING_OBJ
+}
+
+// HashKey produces a hash for a key.
+func (s *String) HashKey() HashKey {
+	h := fnv.New64a()
+	h.Write([]byte(s.Value))
+	return HashKey{Type: s.Type(), Value: h.Sum64()}
 }
 
 // Null represents no value.
@@ -190,4 +217,48 @@ func (a *Array) Inspect() string {
 	out.WriteString("]")
 
 	return out.String()
+}
+
+// HashKey is a representation of a hashed value for an object.
+type HashKey struct {
+	Type  ObjectType // The type of object that was hashed.
+	Value uint64     // The value of the hash.
+}
+
+// HashPair represents a key value pair.
+type HashPair struct {
+	Key   Object // The key for the hash.
+	Value Object // The value for the hash.
+}
+
+// Hash represents a map, hashmap, or dictionary type structure.
+type Hash struct {
+	Pairs map[HashKey]HashPair // Collection of key value pairs.
+}
+
+// Type gets the underlying object type.
+func (h *Hash) Type() ObjectType {
+	return HASH_OBJ
+}
+
+// Inspect represents the object as a string.
+func (h *Hash) Inspect() string {
+	var out bytes.Buffer
+
+	pairs := []string{}
+
+	for _, pair := range h.Pairs {
+		pairs = append(pairs, fmt.Sprintf("%s: %s", pair.Key.Inspect(), pair.Value.Inspect()))
+	}
+
+	out.WriteString("{")
+	out.WriteString(strings.Join(pairs, ", "))
+	out.WriteString("}")
+
+	return out.String()
+}
+
+// Hashable indicates that an object in our system can be used as a hash key.
+type Hashable interface {
+	HashKey() HashKey
 }

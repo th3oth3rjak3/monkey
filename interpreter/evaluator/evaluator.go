@@ -113,6 +113,9 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return args[0]
 		}
 		return applyFunction(function, args)
+
+	case *ast.HashLiteral:
+		return evalHashLiteral(node, env)
 	}
 
 	return nil
@@ -477,15 +480,33 @@ func unwrapReturnValue(obj object.Object) object.Object {
 	return obj
 }
 
+// evalIndexExpression evaluates an indexing expression like items[1]
+//
+// Parameters:
+//   - left: The expression on the left which will be indexed into.
+//   - index: The indexing expression used to find the value.
+//
+// Returns:
+//   - object.Object: The object that was found by indexing.
 func evalIndexExpression(left, index object.Object) object.Object {
 	switch {
 	case left.Type() == object.ARRAY_OBJ && index.Type() == object.INTEGER_OBJ:
 		return evalArrayIndexExpression(left, index)
+	case left.Type() == object.HASH_OBJ:
+		return evalHashIndexExpression(left, index)
 	default:
 		return newError("index operator not supported: %s", left.Type())
 	}
 }
 
+// evalArrayIndexExpression is used to evaluate an indexing expression on an array.
+//
+// Parameters:
+//   - array: the array which contains the value we need.
+//   - index: the index position of the item.
+//
+// Returns:
+//   - object.Object: The object that was at the index position in the array or null.
 func evalArrayIndexExpression(array, index object.Object) object.Object {
 	arrayObject := array.(*object.Array)
 	idx := index.(*object.Integer).Value
@@ -496,4 +517,62 @@ func evalArrayIndexExpression(array, index object.Object) object.Object {
 	}
 
 	return arrayObject.Elements[idx]
+}
+
+// evalHashLiteral evaluates a hash literal.
+//
+// Parameters:
+//   - node: The node that is a hash literal.
+//   - env: The environment that has the current state.
+//
+// Returns:
+//   - object.Object: The Hash object after evaluation.
+func evalHashLiteral(node *ast.HashLiteral, env *object.Environment) object.Object {
+	pairs := make(map[object.HashKey]object.HashPair)
+
+	for keyNode, valueNode := range node.Pairs {
+		key := Eval(keyNode, env)
+		if isError(key) {
+			return key
+		}
+
+		hashKey, ok := key.(object.Hashable)
+		if !ok {
+			return newError("unusable as hash key: %s", key.Type())
+		}
+
+		value := Eval(valueNode, env)
+		if isError(value) {
+			return value
+		}
+
+		hashed := hashKey.HashKey()
+		pairs[hashed] = object.HashPair{Key: key, Value: value}
+	}
+
+	return &object.Hash{Pairs: pairs}
+}
+
+// evalHashIndexExpression evaluates a user's request to index into a hash to get out the value.
+//
+// Parameters:
+//   - hash: The hash to get the value from.
+//   - index: The hashable key used to get out the value.
+//
+// Returns:
+//   - object.Object: The value from the hash for the specified key.
+func evalHashIndexExpression(hash, index object.Object) object.Object {
+	hashObject := hash.(*object.Hash)
+	key, ok := index.(object.Hashable)
+	if !ok {
+		return newError("unusable as hash key: %s", index.Type())
+	}
+
+	pair, ok := hashObject.Pairs[key.HashKey()]
+
+	if !ok {
+		return NULL
+	}
+
+	return pair.Value
 }
