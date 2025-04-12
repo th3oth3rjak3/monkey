@@ -10,6 +10,7 @@ const (
 	BOOLEAN_OBJ      = "BOOLEAN"
 	NULL_OBJ         = "NULL"
 	RETURN_VALUE_OBJ = "RETURN_VALUE"
+	ERROR_OBJ        = "ERROR"
 )
 
 // Object represents our universal type.
@@ -74,4 +75,19 @@ func (r *ReturnValue) Type() ObjectType {
 // Inspect represents the object as a string.
 func (r *ReturnValue) Inspect() string {
 	return r.Value.Inspect()
+}
+
+// Error represents an error that occurs during interpretation.
+type Error struct {
+	Message string // The error message.
+}
+
+// Type gets the underlying object type.
+func (e *Error) Type() ObjectType {
+	return ERROR_OBJ
+}
+
+// Inspect represents the object as a string.
+func (e *Error) Inspect() string {
+	return fmt.Sprintf("ERROR: %s", e.Message)
 }
