@@ -18,6 +18,7 @@ const (
 	ERROR_OBJ        = "ERROR"
 	FUNCTION_OBJ     = "FUNCTION"
 	STRING_OBJ       = "STRING"
+	BUILTIN_OBJ      = "BUILTIN"
 )
 
 // Object represents our universal type.
@@ -143,4 +144,23 @@ func (f *Function) Inspect() string {
 	out.WriteString("\n}")
 
 	return out.String()
+}
+
+// BuiltinFunction is a function that is built into the
+// interpreter for users of the monkey language.
+type BuiltinFunction func(args ...Object) Object
+
+// Builtin represents a built-in function.
+type Builtin struct {
+	Fn BuiltinFunction // The built-in function implementation.
+}
+
+// Type gets the underlying object type.
+func (b *Builtin) Type() ObjectType {
+	return BUILTIN_OBJ
+}
+
+// Inspect represents the object as a string.
+func (b *Builtin) Inspect() string {
+	return "builtin function"
 }
