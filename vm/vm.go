@@ -39,34 +39,8 @@ func (vm *VM) Run() error {
 			}
 		case code.OpPop:
 			vm.pop()
-		case code.OpAdd:
-			right := vm.pop()
-			left := vm.pop()
-			leftValue := left.(*object.Integer).Value
-			rightValue := right.(*object.Integer).Value
-			result := leftValue + rightValue
-			vm.push(&object.Integer{Value: result})
-		case code.OpSub:
-			right := vm.pop()
-			left := vm.pop()
-			leftValue := left.(*object.Integer).Value
-			rightValue := right.(*object.Integer).Value
-			result := leftValue - rightValue
-			vm.push(&object.Integer{Value: result})
-		case code.OpMul:
-			right := vm.pop()
-			left := vm.pop()
-			leftValue := left.(*object.Integer).Value
-			rightValue := right.(*object.Integer).Value
-			result := leftValue * rightValue
-			vm.push(&object.Integer{Value: result})
-		case code.OpDiv:
-			right := vm.pop()
-			left := vm.pop()
-			leftValue := left.(*object.Integer).Value
-			rightValue := right.(*object.Integer).Value
-			result := leftValue / rightValue
-			vm.push(&object.Integer{Value: result})
+		case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv:
+			vm.executeBinaryOperation(op)
 		}
 	}
 
