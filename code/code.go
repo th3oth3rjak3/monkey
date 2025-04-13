@@ -28,6 +28,7 @@ const (
 	OpNull                        // Represents no value
 	OpGetGlobal                   // Get a global binding
 	OpSetGlobal                   // Set a global binding
+	OpArray                       // Construct an array from N elements off of the stack
 )
 
 // Instructions represent virtual machine instructions.
@@ -99,6 +100,7 @@ var definitions = map[Opcode]*Definition{
 	OpNull:          {"OpNull", []int{}},
 	OpGetGlobal:     {"OpGetGlobal", []int{2}},
 	OpSetGlobal:     {"OpSetGlobal", []int{2}},
+	OpArray:         {"OpArray", []int{2}},
 }
 
 // Lookup is used to access opcode definitions from other packages.
