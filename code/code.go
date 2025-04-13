@@ -16,6 +16,8 @@ const (
 	OpSub                    // Represents a subtraction operation
 	OpMul                    // Represents a multiplication operation
 	OpDiv                    // Represents a division operation
+	OpTrue                   // Represents the value true
+	OpFalse                  // Represents the value false
 )
 
 // Instructions represent virtual machine instructions.
@@ -75,6 +77,8 @@ var definitions = map[Opcode]*Definition{
 	OpSub:      {"OpSub", []int{}},
 	OpMul:      {"OpMul", []int{}},
 	OpDiv:      {"OpDiv", []int{}},
+	OpTrue:     {"OpTrue", []int{}},
+	OpFalse:    {"OpFalse", []int{}},
 }
 
 // Lookup is used to access opcode definitions from other packages.
