@@ -21,6 +21,8 @@ const (
 	OpEqual                     // Represents equality
 	OpNotEqual                  // Represents inequality
 	OpGreaterThan               // Represents left > right
+	OpMinus                     // Represents integer negation
+	OpBang                      // Represents boolean negation
 )
 
 // Instructions represent virtual machine instructions.
@@ -85,6 +87,8 @@ var definitions = map[Opcode]*Definition{
 	OpEqual:       {"OpEqual", []int{}},
 	OpNotEqual:    {"OpNotEqual", []int{}},
 	OpGreaterThan: {"OpGreaterThan", []int{}},
+	OpMinus:       {"OpMinus", []int{}},
+	OpBang:        {"OpBang", []int{}},
 }
 
 // Lookup is used to access opcode definitions from other packages.
