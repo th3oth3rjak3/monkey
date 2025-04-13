@@ -10,19 +10,22 @@ import (
 type Opcode byte
 
 const (
-	OpConstant    Opcode = iota // represents a constant value
-	OpPop                       // Tells the vm to pop the stack.
-	OpAdd                       // Represents an addition operation
-	OpSub                       // Represents a subtraction operation
-	OpMul                       // Represents a multiplication operation
-	OpDiv                       // Represents a division operation
-	OpTrue                      // Represents the value true
-	OpFalse                     // Represents the value false
-	OpEqual                     // Represents equality
-	OpNotEqual                  // Represents inequality
-	OpGreaterThan               // Represents left > right
-	OpMinus                     // Represents integer negation
-	OpBang                      // Represents boolean negation
+	OpConstant      Opcode = iota // represents a constant value
+	OpPop                         // Tells the vm to pop the stack.
+	OpAdd                         // Represents an addition operation
+	OpSub                         // Represents a subtraction operation
+	OpMul                         // Represents a multiplication operation
+	OpDiv                         // Represents a division operation
+	OpTrue                        // Represents the value true
+	OpFalse                       // Represents the value false
+	OpEqual                       // Represents equality
+	OpNotEqual                    // Represents inequality
+	OpGreaterThan                 // Represents left > right
+	OpMinus                       // Represents integer negation
+	OpBang                        // Represents boolean negation
+	OpJump                        // Represents a Jump
+	OpJumpNotTruthy               // Represents a jump when a condition is false
+	OpNull                        // Represents no value
 )
 
 // Instructions represent virtual machine instructions.
@@ -76,19 +79,22 @@ type Definition struct {
 
 // definitions contains a map of all the opcode types to some metadata about their use.
 var definitions = map[Opcode]*Definition{
-	OpConstant:    {"OpConstant", []int{2}},
-	OpPop:         {"OpPop", []int{}},
-	OpAdd:         {"OpAdd", []int{}},
-	OpSub:         {"OpSub", []int{}},
-	OpMul:         {"OpMul", []int{}},
-	OpDiv:         {"OpDiv", []int{}},
-	OpTrue:        {"OpTrue", []int{}},
-	OpFalse:       {"OpFalse", []int{}},
-	OpEqual:       {"OpEqual", []int{}},
-	OpNotEqual:    {"OpNotEqual", []int{}},
-	OpGreaterThan: {"OpGreaterThan", []int{}},
-	OpMinus:       {"OpMinus", []int{}},
-	OpBang:        {"OpBang", []int{}},
+	OpConstant:      {"OpConstant", []int{2}},
+	OpPop:           {"OpPop", []int{}},
+	OpAdd:           {"OpAdd", []int{}},
+	OpSub:           {"OpSub", []int{}},
+	OpMul:           {"OpMul", []int{}},
+	OpDiv:           {"OpDiv", []int{}},
+	OpTrue:          {"OpTrue", []int{}},
+	OpFalse:         {"OpFalse", []int{}},
+	OpEqual:         {"OpEqual", []int{}},
+	OpNotEqual:      {"OpNotEqual", []int{}},
+	OpGreaterThan:   {"OpGreaterThan", []int{}},
+	OpMinus:         {"OpMinus", []int{}},
+	OpBang:          {"OpBang", []int{}},
+	OpJump:          {"OpJump", []int{2}},
+	OpJumpNotTruthy: {"OpJumpNotTruthy", []int{2}},
+	OpNull:          {"OpNull", []int{}},
 }
 
 // Lookup is used to access opcode definitions from other packages.
