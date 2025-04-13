@@ -6,6 +6,18 @@ import (
 	"fmt"
 )
 
+// Opcode is an instruction to perform.
+type Opcode byte
+
+const (
+	OpConstant Opcode = iota // represents a constant value
+	OpPop                    // Tells the vm to pop the stack.
+	OpAdd                    // Represents an addition operation
+	OpSub                    // Represents a subtraction operation
+	OpMul                    // Represents a multiplication operation
+	OpDiv                    // Represents a division operation
+)
+
 // Instructions represent virtual machine instructions.
 type Instructions []byte
 
@@ -49,14 +61,6 @@ func (ins Instructions) fmtInstruction(def *Definition, operands []int) string {
 	return fmt.Sprintf("ERROR: unhandled operandCount for %s\n", def.Name)
 }
 
-// Opcode is an instruction to perform.
-type Opcode byte
-
-const (
-	OpConstant Opcode = iota // represents a constant value
-	OpAdd                    // Represents an addition operation
-)
-
 // Definition is a way to keep track opcode metadata
 type Definition struct {
 	Name          string // The human readable name for an opcode.
@@ -66,7 +70,11 @@ type Definition struct {
 // definitions contains a map of all the opcode types to some metadata about their use.
 var definitions = map[Opcode]*Definition{
 	OpConstant: {"OpConstant", []int{2}},
+	OpPop:      {"OpPop", []int{}},
 	OpAdd:      {"OpAdd", []int{}},
+	OpSub:      {"OpSub", []int{}},
+	OpMul:      {"OpMul", []int{}},
+	OpDiv:      {"OpDiv", []int{}},
 }
 
 // Lookup is used to access opcode definitions from other packages.
