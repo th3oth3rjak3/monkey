@@ -47,18 +47,6 @@ func (vm *VM) Run() error {
 	return nil
 }
 
-// StackTop gets the object from the top of the virtual machine stack.
-//
-// Returns:
-//   - object.Object: The object from the top of the stack.
-// func (vm *VM) StackTop() object.Object {
-// 	if vm.sp == 0 {
-// 		return nil
-// 	}
-
-// 	return vm.stack[vm.sp-1]
-// }
-
 // LastPoppedStackElem returns the last item to be "popped" from the stack.
 func (vm *VM) LastPoppedStackElem() object.Object {
 	return vm.stack[vm.sp]
