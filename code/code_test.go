@@ -13,6 +13,11 @@ func TestMake(t *testing.T) {
 		{OpSub, []int{}, []byte{byte(OpSub)}},
 		{OpMul, []int{}, []byte{byte(OpMul)}},
 		{OpDiv, []int{}, []byte{byte(OpDiv)}},
+		{OpTrue, []int{}, []byte{byte(OpTrue)}},
+		{OpFalse, []int{}, []byte{byte(OpFalse)}},
+		{OpEqual, []int{}, []byte{byte(OpEqual)}},
+		{OpNotEqual, []int{}, []byte{byte(OpNotEqual)}},
+		{OpGreaterThan, []int{}, []byte{byte(OpGreaterThan)}},
 	}
 
 	for _, tt := range tests {
