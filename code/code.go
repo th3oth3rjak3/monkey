@@ -26,6 +26,8 @@ const (
 	OpJump                        // Represents a Jump
 	OpJumpNotTruthy               // Represents a jump when a condition is false
 	OpNull                        // Represents no value
+	OpGetGlobal                   // Get a global binding
+	OpSetGlobal                   // Set a global binding
 )
 
 // Instructions represent virtual machine instructions.
@@ -95,6 +97,8 @@ var definitions = map[Opcode]*Definition{
 	OpJump:          {"OpJump", []int{2}},
 	OpJumpNotTruthy: {"OpJumpNotTruthy", []int{2}},
 	OpNull:          {"OpNull", []int{}},
+	OpGetGlobal:     {"OpGetGlobal", []int{2}},
+	OpSetGlobal:     {"OpSetGlobal", []int{2}},
 }
 
 // Lookup is used to access opcode definitions from other packages.
