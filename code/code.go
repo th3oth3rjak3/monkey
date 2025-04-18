@@ -31,6 +31,9 @@ const (
 	OpArray                       // Construct an array from N elements off of the stack
 	OpHash                        // Construct a hash
 	OpIndex                       // Index expression
+	OpCall                        // Call a function
+	OpReturnValue                 // Return a value from the function call by popping the last value on the stack
+	OpReturn                      // Return from a function, no value is on the stack
 )
 
 // Instructions represent virtual machine instructions.
@@ -105,6 +108,9 @@ var definitions = map[Opcode]*Definition{
 	OpArray:         {"OpArray", []int{2}},
 	OpHash:          {"OpHash", []int{2}},
 	OpIndex:         {"OpIndex", []int{}},
+	OpCall:          {"OpCall", []int{}},
+	OpReturnValue:   {"OpReturnValue", []int{}},
+	OpReturn:        {"OpReturn", []int{}},
 }
 
 // Lookup is used to access opcode definitions from other packages.
