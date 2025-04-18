@@ -30,6 +30,7 @@ const (
 	OpSetGlobal                   // Set a global binding
 	OpArray                       // Construct an array from N elements off of the stack
 	OpHash                        // Construct a hash
+	OpIndex                       // Index expression
 )
 
 // Instructions represent virtual machine instructions.
@@ -103,6 +104,7 @@ var definitions = map[Opcode]*Definition{
 	OpSetGlobal:     {"OpSetGlobal", []int{2}},
 	OpArray:         {"OpArray", []int{2}},
 	OpHash:          {"OpHash", []int{2}},
+	OpIndex:         {"OpIndex", []int{}},
 }
 
 // Lookup is used to access opcode definitions from other packages.
