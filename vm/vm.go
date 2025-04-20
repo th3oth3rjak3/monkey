@@ -26,7 +26,7 @@ var Null = &object.Null{}
 
 func New(bytecode *compiler.Bytecode) *VM {
 	mainFn := &object.CompiledFunction{Instructions: bytecode.Instructions}
-	mainFrame := NewFrame(mainFn)
+	mainFrame := NewFrame(mainFn, 0)
 
 	frames := make([]*Frame, MaxFrames)
 	frames[0] = mainFrame
@@ -132,6 +132,23 @@ func (vm *VM) Run() error {
 				return err
 			}
 
+		case code.OpSetLocal:
+			localIndex := code.ReadUint8(ins[ip+1:])
+			vm.currentFrame().ip += 1
+
+			frame := vm.currentFrame()
+			vm.stack[frame.basePointer+int(localIndex)] = vm.pop()
+
+		case code.OpGetLocal:
+			localIndex := code.ReadUint8(ins[ip+1:])
+			vm.currentFrame().ip += 1
+			frame := vm.currentFrame()
+
+			err := vm.push(vm.stack[frame.basePointer+int(localIndex)])
+			if err != nil {
+				return err
+			}
+
 		case code.OpArray:
 			numElements := int(code.ReadUint16(ins[ip+1:]))
 			vm.currentFrame().ip += 2
@@ -164,6 +181,33 @@ func (vm *VM) Run() error {
 			left := vm.pop()
 
 			err := vm.executeIndexExpression(left, index)
+			if err != nil {
+				return err
+			}
+
+		case code.OpCall:
+			numArgs := code.ReadUint8(ins[ip+1:])
+			vm.currentFrame().ip += 1
+			err := vm.callFunction(int(numArgs))
+			if err != nil {
+				return err
+			}
+
+		case code.OpReturnValue:
+			returnValue := vm.pop()
+			frame := vm.popFrame()
+			vm.sp = frame.basePointer - 1
+
+			err := vm.push(returnValue)
+			if err != nil {
+				return err
+			}
+
+		case code.OpReturn:
+			frame := vm.popFrame()
+			vm.sp = frame.basePointer - 1
+
+			err := vm.push(Null)
 			if err != nil {
 				return err
 			}
@@ -413,4 +457,21 @@ func (v *VM) pushFrame(f *Frame) {
 func (v *VM) popFrame() *Frame {
 	v.framesIndex--
 	return v.frames[v.framesIndex]
+}
+
+func (v *VM) callFunction(numArgs int) error {
+	fn, ok := v.stack[v.sp-1-numArgs].(*object.CompiledFunction)
+	if !ok {
+		return fmt.Errorf("calling non-function")
+	}
+
+	if numArgs != fn.NumParameters {
+		return fmt.Errorf("wrong number of arguments: want=%d, got=%d", fn.NumParameters, numArgs)
+	}
+
+	frame := NewFrame(fn, v.sp-numArgs)
+	v.pushFrame(frame)
+
+	v.sp = frame.basePointer + fn.NumLocals
+	return nil
 }

@@ -267,7 +267,9 @@ type Hashable interface {
 
 // CompiledFunction is a function that has been compiled
 type CompiledFunction struct {
-	Instructions code.Instructions // Instructions is the collection of bytecode instructions in the function.
+	Instructions  code.Instructions // Instructions is the collection of bytecode instructions in the function.
+	NumLocals     int               // The number of local variables needed.
+	NumParameters int               // The arity of the function (number of params expected).
 }
 
 // Type gets the underlying object type.
