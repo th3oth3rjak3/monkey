@@ -10,33 +10,36 @@ import (
 type Opcode byte
 
 const (
-	OpConstant      Opcode = iota // represents a constant value
-	OpPop                         // Tells the vm to pop the stack.
-	OpAdd                         // Represents an addition operation
-	OpSub                         // Represents a subtraction operation
-	OpMul                         // Represents a multiplication operation
-	OpDiv                         // Represents a division operation
-	OpTrue                        // Represents the value true
-	OpFalse                       // Represents the value false
-	OpEqual                       // Represents equality
-	OpNotEqual                    // Represents inequality
-	OpGreaterThan                 // Represents left > right
-	OpMinus                       // Represents integer negation
-	OpBang                        // Represents boolean negation
-	OpJump                        // Represents a Jump
-	OpJumpNotTruthy               // Represents a jump when a condition is false
-	OpNull                        // Represents no value
-	OpGetGlobal                   // Get a global binding
-	OpSetGlobal                   // Set a global binding
-	OpArray                       // Construct an array from N elements off of the stack
-	OpHash                        // Construct a hash
-	OpIndex                       // Index expression
-	OpCall                        // Call a function
-	OpReturnValue                 // Return a value from the function call by popping the last value on the stack
-	OpReturn                      // Return from a function, no value is on the stack
-	OpGetLocal                    // Get a local binding
-	OpSetLocal                    // Set a local binding
-	OpGetBuiltin                  // Get a builtin function
+	OpConstant       Opcode = iota // represents a constant value
+	OpPop                          // Tells the vm to pop the stack.
+	OpAdd                          // Represents an addition operation
+	OpSub                          // Represents a subtraction operation
+	OpMul                          // Represents a multiplication operation
+	OpDiv                          // Represents a division operation
+	OpTrue                         // Represents the value true
+	OpFalse                        // Represents the value false
+	OpEqual                        // Represents equality
+	OpNotEqual                     // Represents inequality
+	OpGreaterThan                  // Represents left > right
+	OpMinus                        // Represents integer negation
+	OpBang                         // Represents boolean negation
+	OpJump                         // Represents a Jump
+	OpJumpNotTruthy                // Represents a jump when a condition is false
+	OpNull                         // Represents no value
+	OpGetGlobal                    // Get a global binding
+	OpSetGlobal                    // Set a global binding
+	OpArray                        // Construct an array from N elements off of the stack
+	OpHash                         // Construct a hash
+	OpIndex                        // Index expression
+	OpCall                         // Call a function
+	OpReturnValue                  // Return a value from the function call by popping the last value on the stack
+	OpReturn                       // Return from a function, no value is on the stack
+	OpGetLocal                     // Get a local binding
+	OpSetLocal                     // Set a local binding
+	OpGetBuiltin                   // Get a builtin function
+	OpClosure                      // Wrap the specified compiled function in a closure.
+	OpGetFree                      // Get free variables for closures.
+	OpCurrentClosure               // Load the current closure onto the stack
 )
 
 // Instructions represent virtual machine instructions.
@@ -77,6 +80,8 @@ func (ins Instructions) fmtInstruction(def *Definition, operands []int) string {
 		return fmt.Sprintf("%s", def.Name)
 	case 1:
 		return fmt.Sprintf("%s %d", def.Name, operands[0])
+	case 2:
+		return fmt.Sprintf("%s %d %d", def.Name, operands[0], operands[1])
 	}
 
 	return fmt.Sprintf("ERROR: unhandled operandCount for %s\n", def.Name)
@@ -90,33 +95,36 @@ type Definition struct {
 
 // definitions contains a map of all the opcode types to some metadata about their use.
 var definitions = map[Opcode]*Definition{
-	OpConstant:      {"OpConstant", []int{2}},
-	OpPop:           {"OpPop", []int{}},
-	OpAdd:           {"OpAdd", []int{}},
-	OpSub:           {"OpSub", []int{}},
-	OpMul:           {"OpMul", []int{}},
-	OpDiv:           {"OpDiv", []int{}},
-	OpTrue:          {"OpTrue", []int{}},
-	OpFalse:         {"OpFalse", []int{}},
-	OpEqual:         {"OpEqual", []int{}},
-	OpNotEqual:      {"OpNotEqual", []int{}},
-	OpGreaterThan:   {"OpGreaterThan", []int{}},
-	OpMinus:         {"OpMinus", []int{}},
-	OpBang:          {"OpBang", []int{}},
-	OpJump:          {"OpJump", []int{2}},
-	OpJumpNotTruthy: {"OpJumpNotTruthy", []int{2}},
-	OpNull:          {"OpNull", []int{}},
-	OpGetGlobal:     {"OpGetGlobal", []int{2}},
-	OpSetGlobal:     {"OpSetGlobal", []int{2}},
-	OpArray:         {"OpArray", []int{2}},
-	OpHash:          {"OpHash", []int{2}},
-	OpIndex:         {"OpIndex", []int{}},
-	OpCall:          {"OpCall", []int{1}},
-	OpReturnValue:   {"OpReturnValue", []int{}},
-	OpReturn:        {"OpReturn", []int{}},
-	OpGetLocal:      {"OpGetLocal", []int{1}},
-	OpSetLocal:      {"OpSetLocal", []int{1}},
-	OpGetBuiltin:    {"OpGetBuiltin", []int{1}},
+	OpConstant:       {"OpConstant", []int{2}},
+	OpPop:            {"OpPop", []int{}},
+	OpAdd:            {"OpAdd", []int{}},
+	OpSub:            {"OpSub", []int{}},
+	OpMul:            {"OpMul", []int{}},
+	OpDiv:            {"OpDiv", []int{}},
+	OpTrue:           {"OpTrue", []int{}},
+	OpFalse:          {"OpFalse", []int{}},
+	OpEqual:          {"OpEqual", []int{}},
+	OpNotEqual:       {"OpNotEqual", []int{}},
+	OpGreaterThan:    {"OpGreaterThan", []int{}},
+	OpMinus:          {"OpMinus", []int{}},
+	OpBang:           {"OpBang", []int{}},
+	OpJump:           {"OpJump", []int{2}},
+	OpJumpNotTruthy:  {"OpJumpNotTruthy", []int{2}},
+	OpNull:           {"OpNull", []int{}},
+	OpGetGlobal:      {"OpGetGlobal", []int{2}},
+	OpSetGlobal:      {"OpSetGlobal", []int{2}},
+	OpArray:          {"OpArray", []int{2}},
+	OpHash:           {"OpHash", []int{2}},
+	OpIndex:          {"OpIndex", []int{}},
+	OpCall:           {"OpCall", []int{1}},
+	OpReturnValue:    {"OpReturnValue", []int{}},
+	OpReturn:         {"OpReturn", []int{}},
+	OpGetLocal:       {"OpGetLocal", []int{1}},
+	OpSetLocal:       {"OpSetLocal", []int{1}},
+	OpGetBuiltin:     {"OpGetBuiltin", []int{1}},
+	OpClosure:        {"OpClosure", []int{2, 1}},
+	OpGetFree:        {"OpGetFree", []int{1}},
+	OpCurrentClosure: {"OpCurrentClosure", []int{}},
 }
 
 // Lookup is used to access opcode definitions from other packages.

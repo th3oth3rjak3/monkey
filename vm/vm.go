@@ -26,7 +26,8 @@ var Null = &object.Null{}
 
 func New(bytecode *compiler.Bytecode) *VM {
 	mainFn := &object.CompiledFunction{Instructions: bytecode.Instructions}
-	mainFrame := NewFrame(mainFn, 0)
+	mainClosure := &object.Closure{Fn: mainFn}
+	mainFrame := NewFrame(mainClosure, 0)
 
 	frames := make([]*Frame, MaxFrames)
 	frames[0] = mainFrame
@@ -155,6 +156,33 @@ func (vm *VM) Run() error {
 			definition := object.Builtins[builtinIndex]
 
 			err := vm.push(definition.Builtin)
+			if err != nil {
+				return err
+			}
+
+		case code.OpClosure:
+			constIndex := code.ReadUint16(ins[ip+1:])
+			numFree := code.ReadUint8(ins[ip+3:])
+			vm.currentFrame().ip += 3
+
+			err := vm.pushClosure(int(constIndex), int(numFree))
+			if err != nil {
+				return err
+			}
+
+		case code.OpGetFree:
+			freeIndex := code.ReadUint8(ins[ip+1:])
+			vm.currentFrame().ip += 1
+
+			currentClosure := vm.currentFrame().cl
+			err := vm.push(currentClosure.Free[freeIndex])
+			if err != nil {
+				return err
+			}
+
+		case code.OpCurrentClosure:
+			currentClosure := vm.currentFrame().cl
+			err := vm.push(currentClosure)
 			if err != nil {
 				return err
 			}
@@ -469,15 +497,15 @@ func (v *VM) popFrame() *Frame {
 	return v.frames[v.framesIndex]
 }
 
-func (v *VM) callFunction(fn *object.CompiledFunction, numArgs int) error {
-	if numArgs != fn.NumParameters {
-		return fmt.Errorf("wrong number of arguments: want=%d, got=%d", fn.NumParameters, numArgs)
+func (v *VM) callClosure(cl *object.Closure, numArgs int) error {
+	if numArgs != cl.Fn.NumParameters {
+		return fmt.Errorf("wrong number of arguments: want=%d, got=%d", cl.Fn.NumParameters, numArgs)
 	}
 
-	frame := NewFrame(fn, v.sp-numArgs)
+	frame := NewFrame(cl, v.sp-numArgs)
 	v.pushFrame(frame)
 
-	v.sp = frame.basePointer + fn.NumLocals
+	v.sp = frame.basePointer + cl.Fn.NumLocals
 	return nil
 }
 
@@ -498,11 +526,27 @@ func (v *VM) callBuiltin(builtin *object.Builtin, numArgs int) error {
 func (v *VM) executeCall(numArgs int) error {
 	callee := v.stack[v.sp-1-numArgs]
 	switch callee := callee.(type) {
-	case *object.CompiledFunction:
-		return v.callFunction(callee, numArgs)
+	case *object.Closure:
+		return v.callClosure(callee, numArgs)
 	case *object.Builtin:
 		return v.callBuiltin(callee, numArgs)
 	default:
 		return fmt.Errorf("calling non-function and non-built-in")
 	}
+}
+
+func (v *VM) pushClosure(constIndex int, numFree int) error {
+	constant := v.constants[constIndex]
+	function, ok := constant.(*object.CompiledFunction)
+	if !ok {
+		return fmt.Errorf("not a function: %+v", constant)
+	}
+
+	free := make([]object.Object, numFree)
+	for i := range numFree {
+		free[i] = v.stack[v.sp-numFree+i]
+	}
+	v.sp = v.sp - numFree
+	closure := &object.Closure{Fn: function, Free: free}
+	return v.push(closure)
 }

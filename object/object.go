@@ -24,6 +24,7 @@ const (
 	ARRAY_OBJ             = "ARRAY"
 	HASH_OBJ              = "HASH"
 	COMPILED_FUNCTION_OBJ = "COMPILED_FUNCTION"
+	CLOSURE_OBJ           = "CLOSURE"
 )
 
 // Object represents our universal type.
@@ -280,4 +281,17 @@ func (c *CompiledFunction) Type() ObjectType {
 // Inspect represents the object as a string.
 func (c *CompiledFunction) Inspect() string {
 	return fmt.Sprintf("CompiledFunction[%p]", c)
+}
+
+type Closure struct {
+	Fn   *CompiledFunction
+	Free []Object
+}
+
+func (c *Closure) Type() ObjectType {
+	return CLOSURE_OBJ
+}
+
+func (c *Closure) Inspect() string {
+	return fmt.Sprintf("Closure[%p]", c)
 }

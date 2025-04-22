@@ -2,6 +2,7 @@ package ast
 
 import (
 	"bytes"
+	"fmt"
 	"monkey/token"
 	"strings"
 )
@@ -305,6 +306,7 @@ type FunctionLiteral struct {
 	Token      token.Token     // The 'fn' token
 	Parameters []*Identifier   // The list of parameters which can be empty.
 	Body       *BlockStatement // The body of the function
+	Name       string          // The name of the function
 }
 
 // expressionNode is a placeholder function for the Expression interface.
@@ -325,6 +327,9 @@ func (f *FunctionLiteral) String() string {
 	}
 
 	out.WriteString(f.TokenLiteral())
+	if f.Name != "" {
+		out.WriteString(fmt.Sprintf("<%s>", f.Name))
+	}
 	out.WriteString("(")
 	out.WriteString(strings.Join(params, ", "))
 	out.WriteString(")")
