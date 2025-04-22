@@ -36,6 +36,7 @@ const (
 	OpReturn                      // Return from a function, no value is on the stack
 	OpGetLocal                    // Get a local binding
 	OpSetLocal                    // Set a local binding
+	OpGetBuiltin                  // Get a builtin function
 )
 
 // Instructions represent virtual machine instructions.
@@ -115,6 +116,7 @@ var definitions = map[Opcode]*Definition{
 	OpReturn:        {"OpReturn", []int{}},
 	OpGetLocal:      {"OpGetLocal", []int{1}},
 	OpSetLocal:      {"OpSetLocal", []int{1}},
+	OpGetBuiltin:    {"OpGetBuiltin", []int{1}},
 }
 
 // Lookup is used to access opcode definitions from other packages.
